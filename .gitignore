@@ -1,0 +1,10 @@
+.DS_Store
+__pycache__/
+
+# The blog as built by build.py: made again on every deploy.
+_site/
+_preview/
+# what the editor throws away, until the trash is emptied
+_trash/
+# what archive_old.py asked the Wayback Machine, kept so it need not ask again
+_archive/.cache/

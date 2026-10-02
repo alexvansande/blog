@@ -1,0 +1,46 @@
+name: Deploy the blog to Pages
+
+on:
+  push:
+    branches: [main]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  pages: write
+  id-token: write
+
+concurrency:
+  group: pages
+  cancel-in-progress: true
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      # Resizing every picture takes minutes. What the last deploy made is
+      # kept, for as long as not one picture has changed.
+      - id: media
+        uses: actions/cache@v4
+        with:
+          path: _site/media
+          key: blog-media-${{ hashFiles('**/*.png', '**/*.jpg', '**/*.jpeg', '**/*.gif', '**/*.webp') }}
+      # At the root of blog.vandesande.design, linking back to the site.
+      - name: Build the blog
+        env:
+          BLOG_MEDIA_CACHED: ${{ steps.media.outputs.cache-hit }}
+        run: |
+          pip install pillow
+          python3 build.py --out _site --base / --home https://vandesande.design/
+      - uses: actions/upload-pages-artifact@v3
+        with:
+          path: _site
+      - id: deployment
+        uses: actions/deploy-pages@v4
